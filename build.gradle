@@ -17,8 +17,11 @@ allprojects {
         google()
         jcenter()
         flatDir {
-            dirs 'src/main/libs'
             dirs 'libs'
         }
     }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
 }
