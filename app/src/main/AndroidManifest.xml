@@ -22,10 +22,6 @@
             </intent-filter>
         </activity>
 
-        <service
-            android:name=".CustomForegroundService"
-            android:exported="false" />
-
     </application>
 
 </manifest>
