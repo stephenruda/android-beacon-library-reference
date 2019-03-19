@@ -9,11 +9,16 @@ import android.os.RemoteException;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
+import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.BeaconParser;
+import org.altbeacon.beacon.Identifier;
+import org.altbeacon.beacon.RangeNotifier;
 import org.altbeacon.beacon.Region;
 import org.altbeacon.beacon.startup.BootstrapNotifier;
 import org.altbeacon.beacon.startup.RegionBootstrap;
+
+import java.util.Collection;
 
 /**
  * Created by dyoung on 12/13/13.
@@ -24,18 +29,19 @@ public class BeaconReferenceApplication extends Application implements Bootstrap
         super.onCreate();
         BeaconManager beaconManager = BeaconManager.getInstanceForApplication(this);
         beaconManager.setDebug(true);
+        setScanPeriodsToDesiredTimes();
 
         beaconManager.setAndroidLScanningDisabled(true);
 
         beaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout("m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24"));
 
-        // Calling setScanPeriods before starting the service will cause duplicate events
-        // setScanPeriodsToDesiredTimes();
+        // Calling callPotentiallyBrokenMethods before starting the service will cause duplicate events
+        callPotentiallyBrokenMethods();
 
         startForegroundService();
 
-        // Calling setScanPeriods after starting the service will work correctly
-        setScanPeriodsToDesiredTimes();
+        // Calling callPotentiallyBrokenMethods after starting the service will work correctly
+        // callPotentiallyBrokenMethods();
 
         Region region = new Region("backgroundRegion", null, null, null);
         RegionBootstrap regionBootstrap = new RegionBootstrap(this, region);
@@ -48,11 +54,38 @@ public class BeaconReferenceApplication extends Application implements Bootstrap
         beaconManager.setRegionExitPeriod(90000l);
         beaconManager.setForegroundBetweenScanPeriod(40100l);
         beaconManager.setForegroundScanPeriod(4100l);
+    }
+
+    // Trying to do certain methods on the BeaconManager before starting the foreground service will lead to duplicate entry/exit events
+    protected void callPotentiallyBrokenMethods() {
+        BeaconManager beaconManager = BeaconManager.getInstanceForApplication(this);
+
+        // UNCOMMENT THIS SECTION
         try {
             beaconManager.updateScanPeriods();
         } catch (RemoteException e) {
             e.printStackTrace();
         }
+
+
+        // OR UNCOMMENT THIS SECTION
+//        beaconManager.setBackgroundMode(true);
+
+
+        // UNCOMMENT THIS SECTION
+//        Region region = new Region("backgroundRegion", null, null, null);
+//        try {
+//            beaconManager.startRangingBeaconsInRegion(region);
+//            beaconManager.addRangeNotifier(new RangeNotifier() {
+//                @Override
+//                public void didRangeBeaconsInRegion(Collection<Beacon> collection, Region region) {
+//                    Log.d("DID RANGE",region.getUniqueId());
+//                }
+//            });
+//        } catch (RemoteException e) {
+//            e.printStackTrace();
+//        }
+
     }
 
     protected void startForegroundService() {
